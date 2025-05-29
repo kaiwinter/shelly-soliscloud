@@ -24,7 +24,7 @@ function checkURL(key, date, contentMd5, sign) {
             }
         } else {
             print("Fehler beim Abrufen der URL: " + error_message);
-            if (response.code != 200) {
+            if (response != undefined && response.code != 200) {
               print("HTTP Code: " + response.code);
               print("Response: " + JSON.stringify(response));
             }
@@ -229,7 +229,12 @@ function run() {
   let sha1hmacBase16 = Crypto.sha1_hmac(param, keySecret);
   let hex2Mac = hex2a(sha1hmacBase16);
   let sign = btoa(hex2Mac);
-  checkURL(key, date, contentMd5, sign);
+  
+  try {
+    checkURL(key, date, contentMd5, sign);
+  } catch (error) {
+    console.error(error);
+  }
   // console.log("sign: " + sign);
 }
 
