@@ -1,4 +1,4 @@
-package com.github.kaiwinter.shellysolis;
+package com.github.kaiwinter.shellysoliscloud;
 
 import com.alibaba.fastjson.JSON;
 import okhttp3.MediaType;
@@ -15,10 +15,13 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+/**
+ * https://ginlong-product.oss-cn-shanghai.aliyuncs.com/templet/Authorization.java
+ */
 public class Authorization {
 
-    private static final String KEY = "";
-    private static final String KEY_SECRET = "";
+    private static final String KEY = ""; // TODO: Bei Solis beantragen
+    private static final String KEY_SECRET = ""; // TODO: Bei Solis beantragen
 
     public static void main(String[] args) {
         try {

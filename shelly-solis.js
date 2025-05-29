@@ -1,5 +1,5 @@
 /// <reference path="../../shelly-script.d.ts" />
-function checkURL(key, date, contentMd5, sign) {
+function callURL(key, date, contentMd5, sign) {
     Shelly.call("HTTP.Request", {
       method: "POST",
       url: "https://www.soliscloud.com:13333/v1/api/inverterList",
@@ -16,16 +16,16 @@ function checkURL(key, date, contentMd5, sign) {
           let result = JSON.parse(response.body);
           let psum = result.data.page.records[0].psum;
             print("psum: " + JSON.stringify(psum));
-            if (psum > 3) { // 3 kW
-              console.log("Larger than 3");
+            if (psum > 3) { // Einspeisung größer als 3 kW?
+              print("psum: " + psum + " > 3");
               Shelly.call("Switch.Set", { id: 0, on: true });
             } else {
-              console.log("Smaller than 3");
+              print("psum: " + psum + " < 3");
               Shelly.call("Switch.Set", { id: 0, on: false });
             }
         } else {
             print("Fehler beim Abrufen der URL: " + error_message);
-            if (response.code != 200) {
+            if (response != undefined && response.code != 200) {
               print("HTTP Code: " + response.code);
               print("Response: " + JSON.stringify(response));
             }
@@ -35,6 +35,7 @@ function checkURL(key, date, contentMd5, sign) {
 }
 
 // ---- MD5 ------------------------------------------------
+// https://gist.github.com/ScriptedAlchemy/563f2ca86db57b9b676d15b1a0986382
 function md5cycle(x, k) {
     var a = x[0], b = x[1], c = x[2], d = x[3];
 
@@ -212,6 +213,7 @@ function add32(a, b) {
 
 
 // ---- HMAC SHA1 ------------------------------------------------
+// https://gist.github.com/Seldaek/1730205
 
 var Crypto = {};
 
@@ -384,6 +386,8 @@ Crypto.sha1 = function (msg, raw) {
     }
     return rawResult;
 };
+
+// https://stackoverflow.com/a/3745677
 function hex2a(hexx) {
     var hex = hexx.toString();//force conversion
     var str = '';
@@ -405,12 +409,17 @@ function run() {
   
   // print("param: " + param);
   
-  let key = "";
-  let keySecret = "";
+  let key = "TODO: Bei Solis beantragen";
+  let keySecret = "TODO: Bei Solis beantragen";
   let sha1hmacBase16 = Crypto.sha1_hmac(param, keySecret);
   let hex2Mac = hex2a(sha1hmacBase16);
   let sign = btoa(hex2Mac);
-  checkURL(key, date, contentMd5, sign);
+
+  try {
+    callURL(key, date, contentMd5, sign);
+  } catch (error) {
+    console.error(error);
+  }
   // console.log("sign: " + sign);
 }
 

@@ -1,5 +1,6 @@
 /// <reference path="../../shelly-script.d.ts" />
-function checkURL(key, date, contentMd5, sign) {
+
+function callURL(key, date, contentMd5, sign) {
     Shelly.call("HTTP.Request", {
       method: "POST",
       url: "https://www.soliscloud.com:13333/v1/api/inverterList",
@@ -15,25 +16,28 @@ function checkURL(key, date, contentMd5, sign) {
           // print("Success Response: " + JSON.stringify(response));
           let result = JSON.parse(response.body);
           let psum = result.data.page.records[0].psum;
-            if (psum > 3) { // 3 kW
-              print("psum: " + psum + " > 3");
-              Shelly.call("Switch.Set", { id: 0, on: true });
-            } else {
-              print("psum: " + psum + " < 3");
-              Shelly.call("Switch.Set", { id: 0, on: false });
-            }
+          if (psum > 3) { // Einspeisung größer als 3 kW?
+            print("psum: " + psum + " > 3");
+            // Shelly anschalten
+            Shelly.call("Switch.Set", { id: 0, on: true });
+          } else {
+            print("psum: " + psum + " < 3");
+            // Shelly ausschalten
+            Shelly.call("Switch.Set", { id: 0, on: false });
+          }
         } else {
-            print("Fehler beim Abrufen der URL: " + error_message);
-            if (response != undefined && response.code != 200) {
-              print("HTTP Code: " + response.code);
-              print("Response: " + JSON.stringify(response));
-            }
+          print("Fehler beim Abrufen der URL: " + error_message);
+          if (response != undefined && response.code != 200) {
+            print("HTTP Code: " + response.code);
+            print("Response: " + JSON.stringify(response));
+          }
         }
         print("--- Ende -----------------------");
     });
 }
 
 // ---- HMAC SHA1 ------------------------------------------------
+// https://gist.github.com/Seldaek/1730205
 
 var Crypto = {};
 
@@ -68,20 +72,6 @@ Crypto.sha1 = function (msg, raw) {
     function rotate_left(n,s) {
         var t4 = ( n<<s ) | (n>>>(32-s));
         return t4;
-    }
-
-    function lsb_hex(val) {
-        var str="";
-        var i;
-        var vh;
-        var vl;
-
-        for( i=0; i<=6; i+=2 ) {
-            vh = (val>>>(i*4+4))&0x0f;
-            vl = (val>>>(i*4))&0x0f;
-            str += vh.toString(16) + vl.toString(16);
-        }
-        return str;
     }
 
     function cvt_hex(val, raw) {
@@ -206,6 +196,8 @@ Crypto.sha1 = function (msg, raw) {
     }
     return rawResult;
 };
+
+// https://stackoverflow.com/a/3745677
 function hex2a(hexx) {
     var hex = hexx.toString();//force conversion
     var str = '';
@@ -218,20 +210,20 @@ function run() {
   print("--- Starte -----------------------");
   
   let path = "/v1/api/inverterList";
-  let contentMd5 = "mZFLkyvTelC5g8XnyQrpOw==";
+  let contentMd5 = "mZFLkyvTelC5g8XnyQrpOw=="; // Hardcoded, da immer nur ein leerer Body enthalten ist
   let date = new Date().toUTCString();
   let param = "POST" + "\n" + contentMd5 + "\n" + "application/json" + "\n" + date + "\n" + path;
   
   // print("param: " + param);
   
-  let key = "";
-  let keySecret = "";
+  let key = "TODO: Bei Solis beantragen";
+  let keySecret = "TODO: Bei Solis beantragen";
   let sha1hmacBase16 = Crypto.sha1_hmac(param, keySecret);
   let hex2Mac = hex2a(sha1hmacBase16);
   let sign = btoa(hex2Mac);
   
   try {
-    checkURL(key, date, contentMd5, sign);
+    callURL(key, date, contentMd5, sign);
   } catch (error) {
     console.error(error);
   }
